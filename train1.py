@@ -381,10 +381,10 @@ def train(args, labeled_trainloader, unlabeled_trainloader, test_loader,
 
             Lu = (0.5 * (F.cross_entropy(logits_u_s_1, targets_u,
                                   reduction='none') + F.cross_entropy(logits_u_s_2, targets_u, reduction='none')) * mask).mean()
-            Lr = loss_ranking(logits_u_w_latent, logits_u_s_1_latent, logits_u_s_2_latent, targets_u, model)
+            Lr = (loss_ranking(logits_u_w_latent, logits_u_s_1_latent, logits_u_s_2_latent, targets_u, model) * mask).mean()
 
 
-            loss = Lx + (args.lambda_u * Lu + 0.1 * Lr) * mask
+            loss = Lx + (args.lambda_u * Lu + 0.1 * Lr)
 
             if args.amp:
                 with amp.scale_loss(loss, optimizer) as scaled_loss:
