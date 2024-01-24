@@ -125,7 +125,23 @@ class TransformFixMatch(object):
             transforms.RandomCrop(size=32,
                                   padding=int(32*0.125),
                                   padding_mode='reflect'),
+            RandAugmentMC(n=2, m=10),
             RandAugmentMC(n=2, m=10)])
+        
+        # anthor augment way
+        # self.strong1 = transforms.Compose([
+        #    transforms.RandomHorizontalFlip(),
+        #    transforms.RandomCrop(size=32,
+        #                          padding=int(32*0.125),
+        #                          padding_mode='reflect'),
+        #    RandAugmentMC(n=1, m=10)])
+            
+        #self.strong2 = transforms.Compose([
+        #    transforms.RandomHorizontalFlip(),
+        #    transforms.RandomCrop(size=32,
+        #                          padding=int(32*0.125),
+        #                          padding_mode='reflect'),
+        #    RandAugmentMC(n=2, m=10)])
             
         self.normalize = transforms.Compose([
             transforms.ToTensor(),
