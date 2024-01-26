@@ -125,6 +125,10 @@ def main():
                         help="For distributed training: local_rank")
     parser.add_argument('--no-progress', action='store_true',
                         help="don't use progress bar")
+    parser.add_argument('--ranking_way', default = 'triplet',
+                        help = 'Criterion for ranking')
+    parser.add_argument('--gen_anchor', default = 'CE',
+                        help = 'chose gen_anchor loss')
 
     args = parser.parse_args()
     global best_acc
@@ -324,7 +328,7 @@ def train(args, labeled_trainloader, unlabeled_trainloader, test_loader,
         losses_u = AverageMeter()
         losses_r = AverageMeter()
         mask_probs = AverageMeter()
-        loss_ranking = L.RankingLoss(embedding_size=model.channels).to(args.device)
+        loss_ranking = L.RankingLoss(embedding_size=model.channels, ranking_way = args.ranking_way, gen_anchor = args.gen_anchor).to(args.device)
         if not args.no_progress:
             p_bar = tqdm(range(args.eval_step),
                          disable=args.local_rank not in [-1, 0])
@@ -379,10 +383,9 @@ def train(args, labeled_trainloader, unlabeled_trainloader, test_loader,
             max_probs, targets_u = torch.max(pseudo_label, dim=-1)
             mask = max_probs.ge(args.threshold).float()
 
-            Lu = (0.5 * (F.cross_entropy(logits_u_s_1, targets_u,
-                                  reduction='none') + F.cross_entropy(logits_u_s_2, targets_u, reduction='none')) * mask).mean()
-            Lr = (loss_ranking(logits_u_w_latent, logits_u_s_1_latent, logits_u_s_2_latent, targets_u, model) * mask).mean()
-
+            Lu = (0.5 * mask * (F.cross_entropy(logits_u_s_1, targets_u,
+                         reduction='none') + F.cross_entropy(logits_u_s_2, targets_u, reduction='none'))).mean()
+            Lr = (mask * loss_ranking(logits_u_w_latent, logits_u_s_1_latent, logits_u_s_2_latent, targets_u, model)).mean()
 
             loss = Lx + (args.lambda_u * Lu + 0.1 * Lr)
 
