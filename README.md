@@ -1,5 +1,5 @@
 # MultiMatch
-
+A semi-supervised method with layer consistency and ranking consistency  
 ## Requirements
 
 - Python3.6+
