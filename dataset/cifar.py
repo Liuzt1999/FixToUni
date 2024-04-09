@@ -107,19 +107,20 @@ def x_u_split(args, labels):
 
 class TransformFixMatch(object):
     def __init__(self, mean, std):
+        # weak augment of unlabeled image  
         self.weak = transforms.Compose([
             transforms.RandomHorizontalFlip(),
             transforms.RandomCrop(size=32,
                                   padding=int(32*0.125),
                                   padding_mode='reflect')])
-                                  
+        # medium augment of unlabeled image, the same way as weak augmentation with once RandAugmentMC                             
         self.strong1 = transforms.Compose([
             transforms.RandomHorizontalFlip(),
             transforms.RandomCrop(size=32,
                                   padding=int(32*0.125),
                                   padding_mode='reflect'),
             RandAugmentMC(n=2, m=10)])
-            
+        # strong augment of unlabeled image, the same way as weak augmentation with twice RandAugmentMC     
         self.strong2 = transforms.Compose([
             transforms.RandomHorizontalFlip(),
             transforms.RandomCrop(size=32,
