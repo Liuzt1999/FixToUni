@@ -23,10 +23,10 @@ class RankingLoss(torch.nn.Module):
         torch.nn.Module.__init__(self)
         self.margin_latent = margin_latent # marin in latent space
         self.margin_embedding = margin_embedding # margin in embedding
-        self.margin_anchor = margin_anchor
+        self.margin_anchor = margin_anchor # if self.gen_anchor == 'metric' then use this hyperparameter to control the length of augmentation samples with the anchor  
         self.N = N # the number of generation
         self.r = r # the strength of generation
-        self.embedding_size = embedding_size # the size of latent space
+        self.embedding_size = embedding_size # the size of embedding space
         self.directions = torch.nn.Parameter(torch.randn(self.N, self.embedding_size).cuda())
         nn.init.kaiming_normal_(self.directions, mode = 'fan_out')
         self.scale = scale
@@ -42,7 +42,7 @@ class RankingLoss(torch.nn.Module):
           strong2 = X_s2[i]
           cos_w_s1 = F.linear(l2_norm(weak), l2_norm(strong1))
           cos_w_s2 = F.linear(l2_norm(weak),l2_norm(strong2))
-          loss1 = torch.log(1 + torch.exp(cos_w_s2 - cos_w_s1 + self.margin_latent))
+          loss1 = torch.log(1 + torch.exp(cos_w_s2 - cos_w_s1 + self.margin_latent)) # use triplet way  
           loss.append(loss1)
         loss = sum(loss) / satisfy_size
         return loss
@@ -72,14 +72,14 @@ class RankingLoss(torch.nn.Module):
             if (self.ranking_way == 'triplet'):
               loss_gen_ranking = torch.log(1 + torch.exp(cos_gx[1] - cos_gx[0] + self.margin_embedding))
             
-            elif (self.ranking_way == 'ranking1'):
+            elif (self.ranking_way == 'ranking1'): #hand in hand
               loss_gen_temp = list()
               for i in range(self.N - 1):
                 loss_temp = torch.exp(cos_gx[i + 1] - cos_gx[i] + self.margin_embedding)
                 loss_gen_temp.append(loss_temp) 
               loss_gen_ranking = torch.log(1 + sum(loss_gen_temp))            
             
-            elif (self.ranking_way == 'ranking2'):
+            elif (self.ranking_way == 'ranking2'): #the way as SCAR
               loss_gen_temp = list()
               g_loss_l_mid = list() 
               g_loss_r_mid = list() 
